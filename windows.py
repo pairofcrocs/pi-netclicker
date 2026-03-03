@@ -18,9 +18,7 @@ import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
 from pynput.mouse import Button, Controller
-from pynput import keyboard as pynkeyboard
 import sv_ttk
-import time
 
 # Optional: py-window-styles for dark title bar on Windows
 try:
@@ -74,80 +72,8 @@ class ClickServerGUI:
         # --- Click logging toggle ---
         self.log_clicks_var = tk.BooleanVar(value=False)
 
-        # --- F6 → F2 hold state ---
-        self.enable_f6_hold_var = tk.BooleanVar(value=False)
-        self._kb_controller = pynkeyboard.Controller()
-        self._hold_thread = None
-        self._hold_stop = threading.Event()
-        self._holding_active = False
-        self._f6_is_down = False
-        self._kb_listener = None
-
         self.setup_ui()
         self.root.after(100, self.start_server)
-        self._start_keyboard_listener()
-
-    # ---------- keyboard listener & hold loop ----------
-    def _start_keyboard_listener(self):
-        def on_press(key):
-            try:
-                if key == pynkeyboard.Key.f6:
-                    if not self._f6_is_down:
-                        self._f6_is_down = True
-                        self._handle_f6_toggle()
-            except Exception as e:
-                self.root.after(0, lambda: self.log(f"Hotkey error: {e}", "error"))
-
-        def on_release(key):
-            if key == pynkeyboard.Key.f6:
-                self._f6_is_down = False
-
-        self._kb_listener = pynkeyboard.Listener(on_press=on_press, on_release=on_release)
-        self._kb_listener.daemon = True
-        self._kb_listener.start()
-        self.root.after(0, lambda: self.log("Global hotkey ready: F6 (when enabled) toggles F2 hold", "info"))
-
-    def _handle_f6_toggle(self):
-        if not self.enable_f6_hold_var.get():
-            self.log("F6 pressed, but 'Enable F6 → Hold F2' is off", "warning")
-            return
-        if not self._holding_active:
-            self._start_f2_hold()
-        else:
-            self._stop_f2_hold()
-
-    def _start_f2_hold(self):
-        if self._holding_active:
-            return
-        self._holding_active = True
-        self._hold_stop.clear()
-
-        def loop():
-            try:
-                while not self._hold_stop.is_set():
-                    self._kb_controller.press(pynkeyboard.Key.f2)
-                    time.sleep(0.03)
-            finally:
-                try:
-                    self._kb_controller.release(pynkeyboard.Key.f2)
-                except Exception:
-                    pass
-
-        self._hold_thread = threading.Thread(target=loop, daemon=True)
-        self._hold_thread.start()
-        self.log("F2 HOLD: started (simulated)", "success")
-
-    def _stop_f2_hold(self):
-        if not self._holding_active:
-            return
-        self._hold_stop.set()
-        self._hold_thread = None
-        self._holding_active = False
-        self.log("F2 HOLD: stopped", "warning")
-
-    def _disable_feature_and_release(self):
-        if self._holding_active:
-            self._stop_f2_hold()
 
     # --------------------------------------------------------
     def setup_ui(self):
@@ -195,31 +121,16 @@ class ClickServerGUI:
         self.clear_btn = ttk.Button(button_frame, text="Clear Log", command=self.clear_log, width=18)
         self.clear_btn.grid(row=0, column=2, padx=5)
 
-        # --- Hotkey feature frame ---
-        feature_frame = ttk.LabelFrame(main_frame, text="Hotkey Feature", padding="15")
-        feature_frame.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 15))
-
-        self.enable_chk = ttk.Checkbutton(
-            feature_frame,
-            text="Enable F6 → Hold F2 (simulated)",
-            variable=self.enable_f6_hold_var,
-            command=self._on_feature_toggle
-        )
-        self.enable_chk.grid(row=0, column=0, sticky=tk.W)
+        # --- Options frame ---
+        options_frame = ttk.LabelFrame(main_frame, text="Options", padding="15")
+        options_frame.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 15))
 
         self.log_clicks_chk = ttk.Checkbutton(
-            feature_frame,
+            options_frame,
             text="Log click events (DOWN/UP)",
             variable=self.log_clicks_var
         )
-        self.log_clicks_chk.grid(row=2, column=0, sticky=tk.W, pady=(4, 0))
-
-        tip = ttk.Label(
-            feature_frame,
-            text="Tip: Tap F6 to toggle the F2 hold. Uncheck to stop & release F2.",
-            foreground="#858585"
-        )
-        tip.grid(row=1, column=0, sticky=tk.W, pady=(4, 0))
+        self.log_clicks_chk.grid(row=0, column=0, sticky=tk.W)
 
         # Log frame
         log_frame = ttk.LabelFrame(main_frame, text="Activity Log", padding="15")
@@ -252,13 +163,6 @@ class ClickServerGUI:
                 "Tip: Install 'py-window-styles' for dark title bar on Windows: pip install py-window-styles",
                 "warning"
             ))
-
-    def _on_feature_toggle(self):
-        if self.enable_f6_hold_var.get():
-            self.log("Feature enabled: F6 will toggle F2 hold", "success")
-        else:
-            self.log("Feature disabled", "warning")
-            self._disable_feature_and_release()
 
     def log(self, message, tag="info"):
         timestamp = datetime.now().strftime("%H:%M:%S")
@@ -431,7 +335,6 @@ class ClickServerGUI:
             self.update_client_status(False)
 
     def on_closing(self):
-        self._disable_feature_and_release()
         self.is_running = False
         self.disconnect_current_client()
         if self.server:
@@ -439,11 +342,6 @@ class ClickServerGUI:
                 self.server.close()
             except Exception:
                 pass
-        try:
-            if self._kb_listener:
-                self._kb_listener.stop()
-        except Exception:
-            pass
         self.root.destroy()
 
 

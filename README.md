@@ -228,8 +228,7 @@ The GUI will appear and the server starts automatically on port `5000`. When the
 
 ### Features
 
-- **F6 → Hold F2:** When the checkbox is enabled, pressing F6 on the keyboard toggles a simulated continuous F2 keypress. Tap F6 again to stop.
-- **Log click events:** Toggle logging of individual DOWN/UP events. Off by default to keep the log clean at high click rates.
+- **Log click events:** Toggle logging of individual DOWN/UP events in the Options panel. Off by default to keep the log clean at high click rates.
 
 ---
 
