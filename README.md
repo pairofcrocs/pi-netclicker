@@ -14,7 +14,7 @@ Communication runs over [Tailscale](https://tailscale.com), so it works across a
 
 - `button_client.py` runs on the Pi. It monitors the button via GPIO interrupt and sends `DOWN`/`UP` events over TCP to the Windows machine.
 - `windows.py` runs on Windows. It receives those events and simulates real left mouse button presses using `pynput`.
-- `ap_server.py` is a one-time setup tool that turns the Pi into a Wi-Fi hotspot so you can configure its network credentials from a phone or laptop.
+- `ap_server.py` runs on the Pi and creates a Wi-Fi hotspot that lets you add or change network credentials from any phone or laptop. It's triggered on demand by a double-press of the PiSugar2's built-in button — no SSH or keyboard required.
 
 ---
 
@@ -64,6 +64,20 @@ The PiSugar2 ships with a smaller default battery. To use the 2200mAh extended b
 3. After booting (see software setup), open the PiSugar2 web interface at `http://<pi-ip>:8421`.
 4. Navigate to **Settings** and set the battery capacity to **2200 mAh** so the percentage display is accurate.
 
+### Configuring the PiSugar2 Button (Wi-Fi Provisioning)
+
+The PiSugar2 has its own physical button. Configure a double-press to trigger `ap_server.py` so you can change Wi-Fi credentials at any time without SSH:
+
+1. Open the PiSugar2 web interface at `http://<pi-ip>:8421`
+2. Go to **Settings → Button**
+3. Set the **Double Tap** action to **Custom** and enter:
+   ```
+   sudo python3 /home/<your-username>/ap_server.py
+   ```
+4. Save the setting
+
+From that point on, a double-press of the PiSugar2 button will bring up the `NetClicker` hotspot so you can reconfigure Wi-Fi without touching a terminal.
+
 ---
 
 ## Software Setup
@@ -78,13 +92,11 @@ In the Imager's advanced settings (gear icon), configure:
 - Set a username/password
 - Optionally pre-configure your Wi-Fi here (skips the `ap_server.py` step)
 
-### 2. Initial Wi-Fi Setup (if not configured in Imager)
+### 2. Wi-Fi Setup via ap_server.py
 
-`ap_server.py` turns the Pi into a temporary Wi-Fi hotspot so you can configure its network from any phone or laptop.
+`ap_server.py` creates a temporary Wi-Fi hotspot called **`NetClicker`** so you can add or change network credentials from any phone or laptop. It's used for both initial setup and changing networks later.
 
-**Set up as a one-time boot service:**
-
-SSH into the Pi, then:
+First, install NetworkManager on the Pi:
 
 ```bash
 sudo apt update && sudo apt install -y network-manager python3
@@ -92,16 +104,20 @@ sudo systemctl stop wpa_supplicant
 sudo systemctl disable wpa_supplicant
 ```
 
-Copy `ap_server.py` to the Pi and run it manually once to provision Wi-Fi:
+Copy `ap_server.py` to the Pi, then run it:
 
 ```bash
 sudo python3 ap_server.py
 ```
 
-1. On your phone or laptop, connect to the Wi-Fi network **`Pi-Setup`** (password: `setup1234`)
+Or, after completing the PiSugar2 button setup below, simply **double-press the PiSugar2 button** to start it automatically.
+
+**To connect and configure:**
+
+1. On your phone or laptop, connect to Wi-Fi network **`NetClicker`** (password: `netclicker`)
 2. Open a browser and go to `http://10.42.0.1:8080`
-3. Select your Wi-Fi network and enter the password
-4. Click **Add Connection** — the Pi will reboot and connect to your network
+3. Select your network and enter the password
+4. Click **Add Connection** — the Pi saves the credentials and reboots
 
 ### 3. Install Tailscale on the Pi
 

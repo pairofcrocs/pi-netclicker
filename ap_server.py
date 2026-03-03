@@ -10,9 +10,9 @@ import time
 import shlex
 
 # ====== Config ======
-HOTSPOT_SSID = "Pi-Setup"
-HOTSPOT_PASS = "setup1234"   # >= 8 chars
-HOTSPOT_CON_NAME = "PiSetupHotspot"
+HOTSPOT_SSID = "NetClicker"
+HOTSPOT_PASS = "netclicker"   # >= 8 chars
+HOTSPOT_CON_NAME = "NetClickerHotspot"
 WIFI_CON_NAME_PREFIX = "WiFi-"
 WIFI_IFACE = "wlan0"
 
@@ -259,7 +259,7 @@ p {
         html = f"""<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Raspberry Pi Wi-Fi Setup</title>
+<title>NetClicker Wi-Fi Setup</title>
 <style>
 * {{
   margin: 0;
