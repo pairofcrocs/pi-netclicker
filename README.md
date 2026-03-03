@@ -32,7 +32,16 @@ Communication runs over [Tailscale](https://tailscale.com), so it works across a
 
 ## 3D Printed Case
 
-Print `case.stl` once and `lid.stl` **twice** — the lid is used for both the top and bottom of the enclosure. After assembling the electronics inside, glue both lids in place to seal it.
+Four STL files are included:
+
+| File | Qty | Description |
+|------|-----|-------------|
+| `case.stl` | 1 | Main enclosure body |
+| `lid.stl` | 2 | Top and bottom lids — print twice and glue to seal |
+| `button.stl` | 1 | Button cap that sits over the momentary push button |
+| `switch.stl` | 1 | Switch actuator/cover |
+
+After assembling the electronics inside, glue both lids in place to seal the enclosure.
 
 > **Note:** The 3D printed case is the weakest part of this build. It can crack under hard drops. The electronics inside are fine — reprint and reassemble if needed.
 
@@ -233,3 +242,5 @@ The GUI will appear and the server starts automatically on port `5000`. When the
 | `ap_server.py` | Raspberry Pi | One-time Wi-Fi provisioning hotspot |
 | `case.stl` | — | 3D printable enclosure body |
 | `lid.stl` | — | 3D printable lid (print twice) |
+| `button.stl` | — | 3D printable button cap |
+| `switch.stl` | — | 3D printable switch actuator |
